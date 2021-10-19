@@ -8,10 +8,4 @@ const input = [
   "<B><C>This should be centred and in boldface, but there is a missing closing tag</C>"
 ];
 
-process(input);
-
-function process(input) {
-  for (let i = 0; i < input.length; i++) {
-    console.log(tc.tagCheck(input[i]));
-  }
-}
+input.map(paragraph => console.log(tc.tagCheck(paragraph)) );

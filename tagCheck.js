@@ -1,83 +1,60 @@
 'use strict';
 
 function tagCheck(paragraph) {
-  let position = 0;
-  let tagStack = [];
+  const corectMessage = 'Correctly tagged paragraph';
+  const tagArray = getTag(paragraph); 
   
-  while (true) { // loop untill no new tags are found
-    let tag = getTag(paragraph, position);
-    let tagFormated = '<' + tag + '>';
-    let peek = '#';
-    
-    if (tag === -1) { //past the end
-      break;
-    }
-    
-    if (tag.length === 0) {// make sure the tag has content
-      position = paragraph.indexOf('<' , position) +1;
-      continue;
-    }
-    
-    position = paragraph.indexOf('<' + tag + '>', position) + 1;
-    
-    if (tagStack.length > 0) {
-      peek = '</'+tagStack[tagStack.length - 1]+ '>';
+  const reducer = tagArray.reduce((a, b) => {
+    const peeked = peek(a.stack)
+    if ( isClosing(peeked, b)) {// good tag match
+       a.stack.pop();
+       return a;
     } 
-    
-    if ( isEnd(tag) ) {
-      if ( peek === tagFormated ) {
-        tagStack.pop();
-      } else {
-        return 'Expected ' + peek + ' found ' + tagFormated ;
-      }
-    } else {
-      tagStack.push(tag);
+    a.stack.push(b);
+    if (isEnd(b)){ // bad tag match
+      a.message = 'Expected ' + makeEnd(peeked) + ' found ' + b ;
+      a.stack.pop();
     }
-  }// end while
-  
-  if (tagStack.length === 0) {
-    return 'Correctly tagged paragraph';
-  } else {
-    return 'Expected </' + tagStack.pop() + '> found #';
+    return a
+  }, {stack:[], message: corectMessage});
+  if (reducer.stack.length > 0 &&  reducer.message === corectMessage) {// leftover tags in the stack
+    reducer.message = "Expected " + makeEnd(reducer.stack[0]) +" found #"
   }
-}
-
-// cet the content of a valid tag
-function getTag(paragraph, index = 0 ) {
-  let tagStart = paragraph.indexOf('<', index);
-  let tagEnd = paragraph.indexOf('>', tagStart);
-
-  if (tagStart < 0 || tagEnd < 0) { // past the end
-    return -1;
-  }
-  
-  let tag = paragraph.slice(tagStart+1, tagEnd);
-  
-  if ( isTag(tag)) { // zeo or one / with one capital letter e.g /B
-    return tag; 
-  }
-  
-  return '';
-}
-
-//check tag has valid content
-function isTag(tag) {
-  if ( tag.match(/\/?[A-Z]$/) ) { // zeo or one / with one capital letter e.g /B
-    return true; 
-  }
-  return false;
+  return reducer.message
 }
 
 function isEnd(tag) {
-  if (tag[0] === '/' && isTag(tag)) {
-    return true;
+  return (tag[1] === '/');
+}
+
+function peek(a){
+  if (a.length === 0) {
+    return '#';
+  }
+  return a[a.length -1];
+}
+
+function isClosing(a, b){
+  if (isEnd(b)) {
+    const cleanB = b.replace('/', '');
+    return a === cleanB
   }
   return false;
+}
+
+function makeEnd(val) {
+  return val.replace('<', '</');
+}
+
+function getTag(val) {
+  return val.match(/<\/?[A-Z]>/g);
 }
 
 module.exports = {
   tagCheck,
+  peek,
+  isClosing,
+  makeEnd,
   getTag,
-  isTag,
   isEnd
 };

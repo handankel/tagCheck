@@ -2,45 +2,49 @@
 const tc = require('./tagCheck');
 
 // getTag
-test('get tag from "The following text<C>"', () => {
-  expect(tc.getTag('The following text<C>')).toBe('C');
+test('getTag: "The following text<C>"', () => {
+  expect(tc.getTag('The following text<C>')).toStrictEqual(['<C>']);
 });
-test('get tag from "The following text<C>"', () => {
-  expect(tc.getTag('The following text<C>')).toBe('C');
-});
-test('get tag from "The following text<>"', () => {
-  expect(tc.getTag('The following text<>')).toBe('');
-});
-test('get tag after charicter 2 from "<C>The following text<\\C>"', () => {
-  expect(tc.getTag('<C>The following text<\\C>', 2)).toBe('\\C');
-});
-test('get tag after charicter 23 from "<C>The following text<\\C>"', () => {
-  expect(tc.getTag('<C>The following text<\\C>', 23)).toBe(-1);
+test('getTag: "<A></A><b></b><9></><><Z><ABC>"', () => {
+  expect(tc.getTag("<A></A><b></b><9></><><Z><ABC>")).toStrictEqual(['<A>', '</A>', '<Z>']);
 });
 
-//isTag
-test('check if /B is an ending tag', () => {
-  expect(tc.isTag('/B')).toBe(true);
+// peek
+test("peek: ['a']", () => {
+  expect(tc.peek(['a'])).toBe('a');
 });
-test('check if B is an ending tag', () => {
-  expect(tc.isTag('B')).toBe(true);
+test("peek: []", () => {
+  expect(tc.peek([])).toBe('#');
 });
-test('check if /9 is an ending tag', () => {
-  expect(tc.isTag('/9')).toBe(false);
+
+//isClosing
+test("isClosing: '<B>', '</B>'", () => {
+  expect(tc.isClosing('<B>', '</B>')).toBe(true);
+});
+test("isClosing: '<B>', '<B>'", () => {
+  expect(tc.isClosing('<B>', '<B>')).toBe(false);
+});
+test("isClosing: '<A>', '</B>'", () => {
+  expect(tc.isClosing('<A>', '</B>')).toBe(false);
+});
+
+//makeEnd
+test("makeEnd: '<A>'", () => {
+  expect(tc.makeEnd('<A>')).toBe('</A>');
 });
 
 // isEnd
-test('check if /B is an ending tag', () => {
-  expect(tc.isEnd('/B')).toBe(true);
+test('isEnd: </B>', () => {
+  expect(tc.isEnd('</B>')).toBe(true);
 });
-test('check if B is an ending tag', () => {
-  expect(tc.isEnd('B')).toBe(false);
-});
-test('check if /9 is an ending tag', () => {
-  expect(tc.isEnd('/9')).toBe(false);
+test('isEnd: <B>', () => {
+  expect(tc.isEnd('<B>')).toBe(false);
 });
 
 //tagCheck
+test('tagCheck: "The following <>text<C><B>is centred and in boldface</B></C>"', () => {
+  expect(tc.tagCheck('The following <>text<C><B>is centred and in boldface</B></C>')).toBe("Correctly tagged paragraph");
+});
 test('tagCheck: "The following text<C><B>is centred and in boldface</B></C>"', () => {
   expect(tc.tagCheck('The following text<C><B>is centred and in boldface</B></C>')).toBe("Correctly tagged paragraph");
 });
